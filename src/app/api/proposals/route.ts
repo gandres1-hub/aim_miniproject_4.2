@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/db/supabaseClient';
 import { reviewProposal } from '@/lib/ai/reviewProposal';
 import type { NewProposalInput } from '@/lib/types';
+import { checkVenueConflict } from '@/lib/logic/venueConflicts';
 
 export async function POST(request: Request) {
   const body: Partial<NewProposalInput> = await request.json();
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
   const supabase = createServerSupabaseClient();
 
-  // 1. Insert the proposal
+// 1. Insert the proposal
   const { data: proposal, error: insertError } = await supabase
     .from('activity_proposals')
     .insert({ ...body, status: 'submitted' })
@@ -58,7 +59,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
   }
 
-  // 2. Run the AI review
+  // 2. Check for venue conflicts against approved proposals
+  const hasConflict = await checkVenueConflict(
+    supabase,
+    proposal.venue,
+    proposal.schedule_start,
+    proposal.schedule_end,
+    proposal.id
+  );
+
+  if (hasConflict) {
+    await supabase
+      .from('activity_proposals')
+      .update({ has_venue_conflict: true })
+      .eq('id', proposal.id);
+    proposal.has_venue_conflict = true;
+  }
+
+  // 3. Run the AI review
   const review = await reviewProposal(body);
 
   // 3. Save the review

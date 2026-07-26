@@ -45,7 +45,11 @@ export default async function DashboardPage() {
       ) : (
         <div className="space-y-3">
           {proposals.map((p) => (
-            <div key={p.id} className="border rounded p-4 flex justify-between items-center">
+            <Link
+               key={p.id}
+               href={`/proposals/${p.id}`}
+               className="border rounded p-4 flex justify-between items-center hover:bg-gray-50"
+       >
               <div>
                 <p className="font-medium">{p.title}</p>
                 <p className="text-sm text-gray-500">
@@ -57,7 +61,7 @@ export default async function DashboardPage() {
               >
                 {p.status.replace('_', ' ')}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}

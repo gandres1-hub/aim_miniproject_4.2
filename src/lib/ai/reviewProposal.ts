@@ -53,7 +53,13 @@ export async function reviewProposal(
       prompt: buildUserPrompt(proposal),
     });
 
-    const parsed = JSON.parse(text);
+    const cleaned = text
+  .trim()
+  .replace(/^```(?:json)?\s*/i, '')
+  .replace(/```\s*$/i, '')
+  .trim();
+
+    const parsed = JSON.parse(cleaned);
 
     if (
       !Array.isArray(parsed.completeness_flags) ||
