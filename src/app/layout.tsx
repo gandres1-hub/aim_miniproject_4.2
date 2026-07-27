@@ -36,7 +36,7 @@ export default function RootLayout({
             <RoleToggle />
           </header>
           {children}
-          
+          <Analytics />
         </RoleProvider>
       </body>
     </html>
