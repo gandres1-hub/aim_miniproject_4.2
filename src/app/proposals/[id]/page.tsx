@@ -44,6 +44,7 @@ export default function ProposalDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount pattern, safe here
     load();
   }, [load]);
 

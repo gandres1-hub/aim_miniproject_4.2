@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { findVenueConflicts } from '@/lib/logic/venueConflicts';
 
 function mockSupabase(returnedRows: unknown[]) {
