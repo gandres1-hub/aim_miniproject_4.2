@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/db/supabaseClient';
 import type { ActivityProposal } from '@/lib/types';
+import { calculateFundTotals } from '@/lib/logic/fundTotals';
 
 
 async function getProposals(): Promise<ActivityProposal[]> {
@@ -29,10 +30,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default async function DashboardPage() {
   const proposals = await getProposals();
 
-  const totalRequested = proposals.reduce((sum, p) => sum + Number(p.budget_amount), 0);
-  const totalApproved = proposals
-    .filter((p) => p.status === 'approved')
-    .reduce((sum, p) => sum + Number(p.budget_amount), 0);
+  const { totalRequested, totalApproved } = calculateFundTotals(proposals);
   const conflictCount = proposals.filter((p) => p.has_venue_conflict).length;
 
   return (
