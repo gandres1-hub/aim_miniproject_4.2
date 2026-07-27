@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { ActivityProposal } from '@/lib/types';
+import { useRole } from '@/lib/roleContext';
 
 interface AIReview {
   completeness_flags: { field: string; issue: string }[];
@@ -21,6 +22,7 @@ export default function ProposalDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { role } = useRole();
 
   const [proposal, setProposal] = useState<ActivityProposal | null>(null);
   const [review, setReview] = useState<AIReview | null>(null);
@@ -139,29 +141,35 @@ export default function ProposalDetailPage() {
         <div className="bg-red-100 text-red-800 p-3 rounded text-sm">{actionError}</div>
       )}
 
-      <div className="flex gap-2">
-        <button
-          disabled={actionLoading}
-          onClick={() => updateStatus('approved')}
-          className="bg-green-600 text-white px-3 py-2 rounded disabled:opacity-50"
-        >
-          Approve
-        </button>
-        <button
-          disabled={actionLoading}
-          onClick={() => updateStatus('revision_requested')}
-          className="bg-orange-500 text-white px-3 py-2 rounded disabled:opacity-50"
-        >
-          Request Revision
-        </button>
-        <button
-          disabled={actionLoading}
-          onClick={() => updateStatus('rejected')}
-          className="bg-red-600 text-white px-3 py-2 rounded disabled:opacity-50"
-        >
-          Reject
-        </button>
-      </div>
+      {role === 'signatory' ? (
+        <div className="flex gap-2">
+          <button
+            disabled={actionLoading}
+            onClick={() => updateStatus('approved')}
+            className="bg-green-600 text-white px-3 py-2 rounded disabled:opacity-50"
+          >
+            Approve
+          </button>
+          <button
+            disabled={actionLoading}
+            onClick={() => updateStatus('revision_requested')}
+            className="bg-orange-500 text-white px-3 py-2 rounded disabled:opacity-50"
+          >
+            Request Revision
+          </button>
+          <button
+            disabled={actionLoading}
+            onClick={() => updateStatus('rejected')}
+            className="bg-red-600 text-white px-3 py-2 rounded disabled:opacity-50"
+          >
+            Reject
+          </button>
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 italic">
+          Switch to &quot;Signatory&quot; view to take action on this proposal.
+        </p>
+      )}
 
       <div className="border rounded p-4 space-y-3">
         <h2 className="font-semibold">Comments</h2>
