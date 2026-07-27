@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { RoleProvider } from "@/lib/roleContext";
 import { RoleToggle } from "@/components/RoleToggle";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
             <RoleToggle />
           </header>
           {children}
+          
         </RoleProvider>
       </body>
     </html>
