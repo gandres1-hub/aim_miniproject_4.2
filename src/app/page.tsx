@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/db/supabaseClient';
 import type { ActivityProposal } from '@/lib/types';
 
+
 async function getProposals(): Promise<ActivityProposal[]> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
@@ -28,6 +29,12 @@ const STATUS_COLORS: Record<string, string> = {
 export default async function DashboardPage() {
   const proposals = await getProposals();
 
+  const totalRequested = proposals.reduce((sum, p) => sum + Number(p.budget_amount), 0);
+  const totalApproved = proposals
+    .filter((p) => p.status === 'approved')
+    .reduce((sum, p) => sum + Number(p.budget_amount), 0);
+  const conflictCount = proposals.filter((p) => p.has_venue_conflict).length;
+
   return (
     <main className="max-w-4xl mx-auto p-8">
       <div className="flex justify-between items-center mb-6">
@@ -39,7 +46,20 @@ export default async function DashboardPage() {
           + New Proposal
         </Link>
       </div>
-
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="border rounded p-3">
+          <p className="text-xs text-gray-500">Total Requested</p>
+          <p className="text-lg font-semibold">₱{totalRequested.toLocaleString()}</p>
+        </div>
+        <div className="border rounded p-3">
+          <p className="text-xs text-gray-500">Total Approved</p>
+          <p className="text-lg font-semibold">₱{totalApproved.toLocaleString()}</p>
+        </div>
+        <div className="border rounded p-3">
+          <p className="text-xs text-gray-500">Venue Conflicts</p>
+          <p className="text-lg font-semibold">{conflictCount}</p>
+        </div>
+      </div>
       {proposals.length === 0 ? (
         <p className="text-gray-500">No proposals yet.</p>
       ) : (

@@ -28,6 +28,7 @@ export default function ProposalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/proposals/${id}`);
@@ -46,11 +47,25 @@ export default function ProposalDetailPage() {
 
   async function updateStatus(status: string) {
     setActionLoading(true);
-    await fetch(`/api/proposals/${id}`, {
+    setActionError(null);
+    const res = await fetch(`/api/proposals/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
+    const data = await res.json();
+
+    if (!data.success) {
+      const conflictText = data.conflicts
+        ?.map((c: { title: string }) => c.title)
+        .join(', ');
+      setActionError(
+        conflictText ? `${data.error} Conflicts with: ${conflictText}` : data.error
+      );
+      setActionLoading(false);
+      return;
+    }
+
     await load();
     setActionLoading(false);
   }
@@ -119,6 +134,9 @@ export default function ProposalDetailPage() {
           )}
           <p className="text-sm italic mt-2">{review.draft_feedback}</p>
         </div>
+      )}
+      {actionError && (
+        <div className="bg-red-100 text-red-800 p-3 rounded text-sm">{actionError}</div>
       )}
 
       <div className="flex gap-2">

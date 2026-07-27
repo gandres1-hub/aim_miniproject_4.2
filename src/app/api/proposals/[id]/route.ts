@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/db/supabaseClient';
+import { findVenueConflicts } from '@/lib/logic/venueConflicts';
 
 export async function GET(
   request: Request,
@@ -53,9 +54,48 @@ export async function PATCH(
   }
 
   const supabase = createServerSupabaseClient();
+
+  const updatePayload: Record<string, unknown> = {
+    status: body.status,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (body.status === 'approved') {
+    const { data: current } = await supabase
+      .from('activity_proposals')
+      .select('venue, schedule_start, schedule_end')
+      .eq('id', id)
+      .single();
+
+    if (current) {
+      const conflicts = await findVenueConflicts(
+        supabase,
+        current.venue,
+        current.schedule_start,
+        current.schedule_end,
+        id
+      );
+
+      if (conflicts.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Cannot approve — venue conflict with an already-approved proposal.',
+            conflicts: conflicts.map((c) => ({
+              title: c.title,
+              schedule_start: c.schedule_start,
+              schedule_end: c.schedule_end,
+            })),
+          },
+          { status: 409 }
+        );
+      }
+    }
+  }
+
   const { data, error } = await supabase
     .from('activity_proposals')
-    .update({ status: body.status, updated_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', id)
     .select()
     .single();
