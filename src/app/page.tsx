@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/db/supabaseClient';
 import type { ActivityProposal } from '@/lib/types';
 import { calculateFundTotals } from '@/lib/logic/fundTotals';
 
-
+export const dynamic = 'force-dynamic';
 async function getProposals(): Promise<ActivityProposal[]> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
